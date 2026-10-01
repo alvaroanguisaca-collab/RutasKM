@@ -21,11 +21,15 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle b){
         super.onCreate(b);
         prefs=getSharedPreferences(PREFS,MODE_PRIVATE);
-        setContentView(buildUi());
+        showMainScreen();
+    }
+
+    private void showMainScreen(){
+        setContentView(buildMainUi());
         refresh();
     }
 
-    private View buildUi(){
+    private View buildMainUi(){
         ScrollView scroll=new ScrollView(this);
         LinearLayout root=new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -59,17 +63,77 @@ public class MainActivity extends Activity {
         Button oil=new Button(this); oil.setText("Gestionar mantenimiento de aceite");
         oil.setOnClickListener(v->toast("Mantenimiento de aceite")); root.addView(oil,new LinearLayout.LayoutParams(-1,-2));
 
-        root.addView(sectionHeader("4. Recuperación de acceso"));
-        root.addView(info("Recuperación de usuario o contraseña mediante el correo registrado."));
-        Button access=new Button(this); access.setText("Recuperar acceso");
-        access.setOnClickListener(v->toast("Recuperación de acceso")); root.addView(access,new LinearLayout.LayoutParams(-1,-2));
-
-        root.addView(sectionHeader("5. Historial"));
+        root.addView(sectionHeader("4. Historial"));
         root.addView(info("Consulta de recorridos y registros guardados."));
         Button history=new Button(this); history.setText("Ver historial");
         history.setOnClickListener(v->toast("Historial")); root.addView(history,new LinearLayout.LayoutParams(-1,-2));
 
+        root.addView(sectionHeader("Cuenta"));
+        root.addView(info("Opciones de seguridad y recuperación de la cuenta."));
+        Button access=new Button(this); access.setText("Recuperación de acceso");
+        access.setOnClickListener(v->showRecoveryScreen());
+        root.addView(access,new LinearLayout.LayoutParams(-1,-2));
+
         return scroll;
+    }
+
+    private void showRecoveryScreen(){
+        ScrollView scroll=new ScrollView(this);
+        LinearLayout root=new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        int pad=dp(18); root.setPadding(pad,pad,pad,dp(28));
+        root.setBackgroundColor(Color.WHITE);
+        scroll.addView(root,new ScrollView.LayoutParams(-1,-2));
+
+        Button back=new Button(this);
+        back.setText("← Volver al panel principal");
+        back.setOnClickListener(v->showMainScreen());
+        root.addView(back,new LinearLayout.LayoutParams(-1,-2));
+
+        TextView title=text("Recuperación de acceso",26,true);
+        title.setPadding(0,dp(24),0,dp(8)); root.addView(title);
+        root.addView(info("Recupera tu usuario o cambia tu contraseña mediante el correo registrado en RutasKM."));
+
+        TextView emailLabel=text("Correo registrado",16,true);
+        emailLabel.setPadding(0,dp(18),0,dp(5)); root.addView(emailLabel);
+        EditText email=new EditText(this);
+        email.setHint("ejemplo@correo.com");
+        email.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        root.addView(email,new LinearLayout.LayoutParams(-1,-2));
+
+        Button sendCode=new Button(this);
+        sendCode.setText("Enviar código de recuperación");
+        sendCode.setOnClickListener(v->{
+            String value=email.getText().toString().trim();
+            if(value.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(value).matches()){
+                toast("Ingresa un correo electrónico válido.");
+                return;
+            }
+            toast("El envío del código se habilitará al conectar el servicio de correo.");
+        });
+        root.addView(sendCode,new LinearLayout.LayoutParams(-1,-2));
+
+        TextView codeLabel=text("Código de verificación",16,true);
+        codeLabel.setPadding(0,dp(20),0,dp(5)); root.addView(codeLabel);
+        EditText code=new EditText(this);
+        code.setHint("Código recibido");
+        code.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        root.addView(code,new LinearLayout.LayoutParams(-1,-2));
+
+        Button verify=new Button(this);
+        verify.setText("Verificar código");
+        verify.setOnClickListener(v->{
+            if(code.getText().toString().trim().isEmpty()) toast("Ingresa el código recibido.");
+            else toast("La verificación estará disponible al conectar el servicio de recuperación.");
+        });
+        root.addView(verify,new LinearLayout.LayoutParams(-1,-2));
+
+        root.addView(info("Por seguridad, RutasKM no mostrará ni almacenará la contraseña actual en esta pantalla."));
+        setContentView(scroll);
+    }
+
+    @Override public void onBackPressed(){
+        showMainScreen();
     }
 
     private TextView sectionHeader(String s){
@@ -102,6 +166,7 @@ public class MainActivity extends Activity {
         }).show();
     }
     private void refresh(){
+        if(odometerView==null || tripView==null || resetView==null) return;
         float current=prefs.getFloat(KEY_ODOMETER,0f);
         float base=prefs.contains(KEY_TRIP_BASE)?prefs.getFloat(KEY_TRIP_BASE,current):current;
         float trip=Math.max(0f,current-base);
