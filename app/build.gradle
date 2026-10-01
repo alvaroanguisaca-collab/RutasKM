@@ -3,11 +3,11 @@ android {
     namespace 'ec.fabi.rutaskm'
     compileSdk 35
     defaultConfig {
-        applicationId 'ec.fabi.rutaskm'
+        applicationId 'ec.fabi.rutaskm.review'
         minSdk 23
         targetSdk 35
-        versionCode 16
-        versionName '1.6'
+        versionCode 17
+        versionName '1.6.1-review'
     }
 }
 dependencies {}
