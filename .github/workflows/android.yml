@@ -17,14 +17,18 @@ jobs:
           gradle-version: '8.9'
       - name: Build APK
         run: gradle --no-daemon clean assembleDebug
-      - name: Verify APK
+      - name: Verify package and APK signature
         run: |
           APK=app/build/outputs/apk/debug/app-debug.apk
-          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | tee app/build/outputs/apk/debug/APK-INFO.txt
+          grep -q "package: name='ec.fabi.rutaskm.review'" app/build/outputs/apk/debug/APK-INFO.txt
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK" | tee app/build/outputs/apk/debug/SIGNATURE.txt
           sha256sum "$APK" | tee app/build/outputs/apk/debug/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: RutasKM-v1.6-debug
+          name: RutasKM-v1.6.1-review
           path: |
             app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/debug/APK-INFO.txt
+            app/build/outputs/apk/debug/SIGNATURE.txt
             app/build/outputs/apk/debug/SHA256SUMS.txt
