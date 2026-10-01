@@ -1,0 +1,13 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'ec.fabi.rutaskm'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'ec.fabi.rutaskm'
+        minSdk 23
+        targetSdk 35
+        versionCode 16
+        versionName '1.6'
+    }
+}
+dependencies {}
